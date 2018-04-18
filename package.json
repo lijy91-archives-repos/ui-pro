@@ -1,0 +1,70 @@
+{
+  "name": "@blankapp/ui-pro",
+  "version": "1.0.0",
+  "description": "Highly customizable and theming components for React Native",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:blankapp/ui-pro.git"
+  },
+  "keywords": [
+    "react-native",
+    "ios",
+    "android",
+    "components",
+    "native-components",
+    "ui-components"
+  ],
+  "author": "JianyingLi <lijy91@foxmail.com>",
+  "license": "MIT",
+  "pre-commit": [
+    "lint"
+  ],
+  "scripts": {
+    "lint": "node_modules/.bin/eslint src/**",
+    "test": "node_modules/.bin/jest"
+  },
+  "dependencies": {
+    "@blankapp/ui": "^1.0.5",
+    "react-native-safe-area-view": "^0.7.0",
+    "react-native-tab-view": "^0.0.77",
+    "react-native-vector-icons": "^4.6.0",
+    "react-navigation": "^1.5.11"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.2",
+    "babel-jest": "22.4.3",
+    "babel-preset-react-native": "4.0.0",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-plugin-import": "^2.10.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-react": "^7.7.0",
+    "jest": "^22.4.3",
+    "pre-commit": "^1.2.2",
+    "prop-types": "^15.6.1",
+    "react": "^16.3.1",
+    "react-dom": "^16.3.1",
+    "react-native": "^0.55.1",
+    "react-test-renderer": "16.3.1"
+  },
+  "peerDependencies": {
+    "prop-types": "*",
+    "react": "*",
+    "react-dom": "*",
+    "react-native": "*"
+  },
+  "jest": {
+    "preset": "react-native",
+    "setupFiles": [
+      "<rootDir>/jest-setup.js"
+    ],
+    "transform": {
+      "^.+\\.js$": "<rootDir>/jest-transform.js"
+    },
+    "testPathIgnorePatterns": [
+      "<rootDir>/node_modules/",
+      "<rootDir>/examples/"
+    ]
+  }
+}
