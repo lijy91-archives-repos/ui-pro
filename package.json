@@ -1,6 +1,6 @@
 {
   "name": "@blankapp/ui-pro",
-  "version": "1.0.0",
+  "version": "1.0.6",
   "description": "Highly customizable and theming components for React Native",
   "main": "index.js",
   "repository": {
@@ -29,7 +29,7 @@
     "react-native-safe-area-view": "^0.7.0",
     "react-native-tab-view": "^0.0.77",
     "react-native-vector-icons": "^4.6.0",
-    "react-navigation": "^1.5.11"
+    "react-navigation": "^2.0.1"
   },
   "devDependencies": {
     "babel-eslint": "^8.2.2",

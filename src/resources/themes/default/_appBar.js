@@ -6,8 +6,6 @@ import {
 } from '@blankapp/ui/src/resources/themes/default/colors';
 import { fontSizeTitle } from '@blankapp/ui/src/resources/themes/default/dimens';
 
-const TITLE_OFFSET = Platform.OS === 'ios' ? 70 : 56;
-
 const getAppBarHeight = (isLandscape) => {
   let appBarHeight = 56;
   if (Platform.OS === 'ios') {
@@ -49,8 +47,6 @@ export default {
     },
   },
   AppBarTitle: {
-    left: TITLE_OFFSET,
-    right: TITLE_OFFSET,
     color: white,
     fontSize: fontSizeTitle,
     fontWeight: '500',

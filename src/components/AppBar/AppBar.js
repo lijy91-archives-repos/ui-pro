@@ -1,15 +1,24 @@
 /* eslint-disable prefer-destructuring,react/prop-types,no-underscore-dangle
  */
 import React from 'react';
+
 import {
   Animated,
+  Image,
   Platform,
   StyleSheet,
   View,
+  I18nManager,
 } from 'react-native';
+// eslint-disable-next-line
+import { MaskedViewIOS } from 'react-navigation/src/PlatformHelpers';
 import SafeAreaView from 'react-native-safe-area-view';
-import HeaderStyleInterpolator from 'react-navigation/src/views/Header/HeaderStyleInterpolator';
 import withStyles from '@blankapp/ui/src/withStyles';
+
+// import HeaderTitle from './AppBarTitle';
+// import HeaderBackButton from './AppBarBackButton';
+import HeaderStyleInterpolator from 'react-navigation/src/views/Header/HeaderStyleInterpolator';
+import withOrientation from 'react-navigation/src/views/withOrientation';
 
 import AppBarBackButton from './AppBarBackButton';
 import AppBarButton from './AppBarButton';
@@ -17,24 +26,24 @@ import AppBarCloseButton from './AppBarCloseButton';
 import AppBarIconButton from './AppBarIconButton';
 import AppBarTitle from './AppBarTitle';
 
-// const APPBAR_HEIGHT = Platform.OS === 'ios' ? 44 : 56;
-// const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : 0;
+const ModularHeaderBackButton = AppBarButton;
+
+const APPBAR_HEIGHT = Platform.OS === 'ios' ? 44 : 56;
+const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : 0;
 const TITLE_OFFSET = Platform.OS === 'ios' ? 70 : 56;
 
-// const getAppBarHeight = (isLandscape) => {
-//   let appBarHeight = 56;
-//   if (Platform.OS === 'ios') {
-//     appBarHeight = isLandscape && !Platform.isPad ? 32 : 44;
-//   }
-//   return appBarHeight;
-// };
+const getAppBarHeight = (isLandscape) => {
+  if (Platform.OS === 'ios') {
+    return isLandscape && !Platform.isPad ? 32 : 44;
+  }
+  return 56;
+};
 
-function warnIfHeaderStyleDefined(value, styleProp) {
+const warnIfHeaderStyleDefined = (value, styleProp) => {
   if (value !== undefined) {
-    // eslint-disable-next-line
     console.warn(`${styleProp} was given a value of ${value}, this has no effect on headerStyle.`);
   }
-}
+};
 
 let platformContainerStyles;
 if (Platform.OS === 'ios') {
@@ -91,6 +100,7 @@ const styles = StyleSheet.create({
     marginTop: -0.5, // resizes down to 20.5
     alignSelf: 'center',
     resizeMode: 'contain',
+    transform: [{ scaleX: I18nManager.isRTL ? -1 : 1 }],
   },
   title: {
     bottom: 0,
@@ -118,10 +128,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  flexOne: {
+    flex: 1,
+  },
 });
 
 class AppBar extends React.PureComponent {
   static defaultProps = {
+    layoutInterpolator: HeaderStyleInterpolator.forLayout,
     leftInterpolator: HeaderStyleInterpolator.forLeft,
     leftButtonInterpolator: HeaderStyleInterpolator.forLeftButton,
     leftLabelInterpolator: HeaderStyleInterpolator.forLeftLabel,
@@ -130,20 +144,20 @@ class AppBar extends React.PureComponent {
     rightInterpolator: HeaderStyleInterpolator.forRight,
   };
 
-  // static get HEIGHT() {
-  //   return APPBAR_HEIGHT + STATUSBAR_HEIGHT;
-  // }
+  static get HEIGHT() {
+    return APPBAR_HEIGHT + STATUSBAR_HEIGHT;
+  }
 
   state = {
     widths: {},
   };
 
   _getHeaderTitleString(scene) {
-    const sceneOptions = this.props.getScreenDetails(scene).options;
-    if (typeof sceneOptions.headerTitle === 'string') {
-      return sceneOptions.headerTitle;
+    const options = scene.descriptor.options;
+    if (typeof options.headerTitle === 'string') {
+      return options.headerTitle;
     }
-    return sceneOptions.title;
+    return options.title;
   }
 
   _getLastScene(scene) {
@@ -155,7 +169,7 @@ class AppBar extends React.PureComponent {
     if (!lastScene) {
       return null;
     }
-    const { headerBackTitle } = this.props.getScreenDetails(lastScene).options;
+    const { headerBackTitle } = lastScene.descriptor.options;
     if (headerBackTitle || headerBackTitle === null) {
       return headerBackTitle;
     }
@@ -167,27 +181,20 @@ class AppBar extends React.PureComponent {
     if (!lastScene) {
       return null;
     }
-    return this.props.getScreenDetails(lastScene).options
-      .headerTruncatedBackTitle;
+    return lastScene.descriptor.options.headerTruncatedBackTitle;
   }
 
-  _navigateBack = () => {
-    requestAnimationFrame(() => {
-      this.props.navigation.goBack(this.props.scene.route.key);
-    });
-  };
-
   _renderTitleComponent = (props) => {
-    const details = this.props.getScreenDetails(props.scene);
-    const headerTitle = details.options.headerTitle;
+    const { options } = props.scene.descriptor;
+    const headerTitle = options.headerTitle;
     if (React.isValidElement(headerTitle)) {
       return headerTitle;
     }
     const titleString = this._getHeaderTitleString(props.scene);
 
-    const titleStyle = details.options.headerTitleStyle;
-    const color = details.options.headerTintColor;
-    const allowFontScaling = details.options.headerTitleAllowFontScaling;
+    const titleStyle = options.headerTitleStyle;
+    const color = options.headerTintColor;
+    const allowFontScaling = options.headerTitleAllowFontScaling;
 
     // On iOS, width of left/right components depends on the calculated
     // size of the title.
@@ -219,8 +226,7 @@ class AppBar extends React.PureComponent {
   };
 
   _renderLeftComponent = (props) => {
-    const { options } = this.props.getScreenDetails(props.scene);
-
+    const { options } = props.scene.descriptor;
     if (
       React.isValidElement(options.headerLeft) ||
       options.headerLeft === null
@@ -238,12 +244,53 @@ class AppBar extends React.PureComponent {
       ? (this.props.layout.initWidth - this.state.widths[props.scene.key]) / 2
       : undefined;
     const RenderedLeftComponent = options.headerLeft || AppBarBackButton;
+    const goBack = () => {
+      // Go back on next tick because button ripple effect needs to happen on Android
+      requestAnimationFrame(() => {
+        props.scene.descriptor.navigation.goBack(props.scene.descriptor.key);
+      });
+    };
     return (
       <RenderedLeftComponent
-        onPress={this._navigateBack}
+        onPress={goBack}
         pressColorAndroid={options.headerPressColorAndroid}
         tintColor={options.headerTintColor}
-        buttonImage={options.headerBackImage}
+        backImage={options.headerBackImage}
+        title={backButtonTitle}
+        truncatedTitle={truncatedBackButtonTitle}
+        titleStyle={options.headerBackTitleStyle}
+        width={width}
+      />
+    );
+  };
+
+  _renderModularLeftComponent = (
+    props,
+    ButtonContainerComponent,
+    LabelContainerComponent,
+  ) => {
+    const { options, navigation } = props.scene.descriptor;
+    const backButtonTitle = this._getBackButtonTitleString(props.scene);
+    const truncatedBackButtonTitle = this._getTruncatedBackButtonTitle(props.scene);
+    const width = this.state.widths[props.scene.key]
+      ? (this.props.layout.initWidth - this.state.widths[props.scene.key]) / 2
+      : undefined;
+
+    const goBack = () => {
+      // Go back on next tick because button ripple effect needs to happen on Android
+      requestAnimationFrame(() => {
+        navigation.goBack(props.scene.descriptor.key);
+      });
+    };
+
+    return (
+      <ModularHeaderBackButton
+        onPress={goBack}
+        ButtonContainerComponent={ButtonContainerComponent}
+        LabelContainerComponent={LabelContainerComponent}
+        pressColorAndroid={options.headerPressColorAndroid}
+        tintColor={options.headerTintColor}
+        backImage={options.headerBackImage}
         title={backButtonTitle}
         truncatedTitle={truncatedBackButtonTitle}
         titleStyle={options.headerBackTitleStyle}
@@ -253,16 +300,17 @@ class AppBar extends React.PureComponent {
   };
 
   _renderRightComponent = (props) => {
-    const details = this.props.getScreenDetails(props.scene);
-    const { headerRight } = details.options;
+    const { headerRight } = props.scene.descriptor.options;
     return headerRight || null;
   };
 
   _renderLeft(props) {
-    const { options } = this.props.getScreenDetails(props.scene);
+    const { options } = props.scene.descriptor;
 
     const { transitionPreset } = this.props;
 
+    // On Android, or if we have a custom header left, or if we have a custom back image, we
+    // do not use the modular header (which is the one that imitates UINavigationController)
     if (
       transitionPreset !== 'uikit' ||
       options.headerBackImage ||
@@ -423,6 +471,10 @@ class AppBar extends React.PureComponent {
   }
 
   _renderHeader(props) {
+    const { options } = props.scene.descriptor;
+    if (options.header === null) {
+      return null;
+    }
     const left = this._renderLeft(props);
     const right = this._renderRight(props);
     const title = this._renderTitle(props, {
@@ -431,7 +483,6 @@ class AppBar extends React.PureComponent {
     });
 
     const { transitionPreset } = this.props;
-    const { options } = this.props.getScreenDetails(props.scene);
 
     const wrapperProps = {
       style: styles.header,
@@ -452,23 +503,39 @@ class AppBar extends React.PureComponent {
         </View>
       );
     }
-    // TODO: ###
-    return null;
+    return (
+      <MaskedViewIOS
+        {...wrapperProps}
+        maskElement={
+          <View style={styles.iconMaskContainer}>
+            <Image
+              // source={require('../assets/back-icon-mask.png')}
+              style={styles.iconMask}
+            />
+            <View style={styles.iconMaskFillerRect} />
+          </View>
+        }
+      >
+        {title}
+        {left}
+        {right}
+      </MaskedViewIOS>
+    );
   }
 
   render() {
     let appBar;
-    const { mode, scene, ...restProps } = this.props;
+    const { mode, scene, isLandscape } = this.props;
 
     if (mode === 'float') {
       const scenesByIndex = {};
-      this.props.scenes.forEach((item) => {
-        scenesByIndex[item.index] = item;
+      this.props.scenes.forEach((sceneItem) => {
+        scenesByIndex[scene.index] = sceneItem;
       });
-      const scenesProps = Object.values(scenesByIndex).map(item => ({
+      const scenesProps = Object.values(scenesByIndex).map(sceneItem => ({
         position: this.props.position,
         progress: this.props.progress,
-        scene: item,
+        scene: sceneItem,
       }));
       appBar = scenesProps.map(this._renderHeader, this);
     } else {
@@ -479,10 +546,10 @@ class AppBar extends React.PureComponent {
       });
     }
 
-    const { options } = this.props.getScreenDetails(scene);
+    const { options } = scene.descriptor;
     const { headerStyle = {} } = options;
     const headerStyleObj = StyleSheet.flatten(headerStyle);
-    // const appBarHeight = getAppBarHeight(isLandscape);
+    const appBarHeight = getAppBarHeight(isLandscape);
 
     const {
       alignItems,
@@ -496,7 +563,8 @@ class AppBar extends React.PureComponent {
       ...safeHeaderStyle
     } = headerStyleObj;
 
-    if (__DEV__) { // eslint-disable-line
+    // eslint-disable-next-line
+    if (__DEV__) {
       warnIfHeaderStyleDefined(alignItems, 'alignItems');
       warnIfHeaderStyleDefined(justifyContent, 'justifyContent');
       warnIfHeaderStyleDefined(flex, 'flex');
@@ -512,18 +580,23 @@ class AppBar extends React.PureComponent {
       options.headerTransparent
         ? styles.transparentContainer
         : styles.container,
-      // { height: appBarHeight },
+      { height: appBarHeight },
       safeHeaderStyle,
+      this.props.style,
     ];
 
     const { headerForceInset } = options;
     const forceInset = headerForceInset || { top: 'always', bottom: 'never' };
 
     return (
-      <SafeAreaView forceInset={forceInset} style={containerStyles} {...restProps}>
-        <View style={StyleSheet.absoluteFill}>{options.headerBackground}</View>
-        <View style={{ flex: 1 }}>{appBar}</View>
-      </SafeAreaView>
+      <Animated.View style={this.props.layoutInterpolator(this.props)}>
+        <SafeAreaView forceInset={forceInset} style={containerStyles}>
+          <View style={StyleSheet.absoluteFill}>
+            {options.headerBackground}
+          </View>
+          <View style={styles.flexOne}>{appBar}</View>
+        </SafeAreaView>
+      </Animated.View>
     );
   }
 }
@@ -534,4 +607,4 @@ AppBar.CloseButton = AppBarCloseButton;
 AppBar.IconButton = AppBarIconButton;
 AppBar.Title = AppBarTitle;
 
-export default withStyles('AppBar')(AppBar);
+export default withStyles('AppBar')(withOrientation(AppBar));
