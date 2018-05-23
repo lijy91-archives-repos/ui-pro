@@ -31,6 +31,8 @@ export default {
     },
   },
   AppBarButton: {
+    paddingLeft: 10,
+    paddingRight: 10,
     Text: {
       color: white,
     },
