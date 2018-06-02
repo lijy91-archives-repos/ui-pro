@@ -25,11 +25,11 @@
     "test": "node_modules/.bin/jest"
   },
   "dependencies": {
-    "@blankapp/ui": "^1.0.5",
-    "react-native-safe-area-view": "^0.7.0",
-    "react-native-tab-view": "^0.0.77",
+    "@blankapp/ui": "^1.0.6",
+    "react-native-safe-area-view": "^0.8.0",
+    "react-native-tab-view": "^1.0.0",
     "react-native-vector-icons": "^4.6.0",
-    "react-navigation": "^2.0.1"
+    "react-navigation": "^2.0.4"
   },
   "devDependencies": {
     "babel-eslint": "^8.2.2",
