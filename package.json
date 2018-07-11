@@ -24,14 +24,9 @@
     "lint": "node_modules/.bin/eslint src/**",
     "test": "node_modules/.bin/jest"
   },
-  "dependencies": {
-    "@blankapp/ui": "^1.0.6",
-    "react-native-safe-area-view": "^0.8.0",
-    "react-native-tab-view": "^1.0.0",
-    "react-native-vector-icons": "^4.6.0",
-    "react-navigation": "^2.0.4"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@blankapp/ui": "^1.0.6",
     "babel-eslint": "^8.2.2",
     "babel-jest": "22.4.3",
     "babel-preset-react-native": "4.0.0",
@@ -46,13 +41,21 @@
     "react": "^16.3.1",
     "react-dom": "^16.3.1",
     "react-native": "^0.55.1",
+    "react-native-safe-area-view": "^0.9.0",
+    "react-native-vector-icons": "^4.6.0",
+    "react-navigation": "^2.6.2",
     "react-test-renderer": "16.3.1"
   },
   "peerDependencies": {
+    "@blankapp/ui": "*",
     "prop-types": "*",
     "react": "*",
     "react-dom": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-safe-area-view": "*",
+    "react-native-tab-view": "*",
+    "react-native-vector-icons": "*",
+    "react-navigation": "*"
   },
   "jest": {
     "preset": "react-native",

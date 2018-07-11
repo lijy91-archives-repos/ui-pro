@@ -9,9 +9,8 @@ import {
   StyleSheet,
   View,
   I18nManager,
+  MaskedViewIOS,
 } from 'react-native';
-// eslint-disable-next-line
-import { MaskedViewIOS } from 'react-navigation/src/PlatformHelpers';
 import SafeAreaView from 'react-native-safe-area-view';
 import withStyles from '@blankapp/ui/src/withStyles';
 
@@ -63,9 +62,11 @@ if (Platform.OS === 'ios') {
   };
 }
 
+const DEFAULT_BACKGROUND_COLOR = Platform.OS === 'ios' ? '#F7F7F7' : '#FFF';
+
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Platform.OS === 'ios' ? '#F7F7F7' : '#FFF',
+    backgroundColor: DEFAULT_BACKGROUND_COLOR,
     ...platformContainerStyles,
   },
   transparentContainer: {
@@ -157,6 +158,11 @@ class AppBar extends React.PureComponent {
     if (typeof options.headerTitle === 'string') {
       return options.headerTitle;
     }
+    // eslint-disable-next-line
+    if (options.title && typeof options.title !== 'string' && __DEV__) {
+      throw new Error(`Invalid title for route "${scene.route.routeName}" - title must be string or null, instead it was of type ${typeof options.title}`);
+    }
+
     return options.title;
   }
 
@@ -560,6 +566,18 @@ class AppBar extends React.PureComponent {
       flexShrink,
       flexBasis,
       flexWrap,
+      position,
+      padding,
+      paddingHorizontal,
+      paddingRight,
+      paddingLeft,
+      // paddingVertical,
+      // paddingTop,
+      // paddingBottom,
+      top,
+      right,
+      bottom,
+      left,
       ...safeHeaderStyle
     } = headerStyleObj;
 
@@ -573,6 +591,18 @@ class AppBar extends React.PureComponent {
       warnIfHeaderStyleDefined(flexShrink, 'flexShrink');
       warnIfHeaderStyleDefined(flexBasis, 'flexBasis');
       warnIfHeaderStyleDefined(flexWrap, 'flexWrap');
+      warnIfHeaderStyleDefined(padding, 'padding');
+      warnIfHeaderStyleDefined(position, 'position');
+      warnIfHeaderStyleDefined(paddingHorizontal, 'paddingHorizontal');
+      warnIfHeaderStyleDefined(paddingRight, 'paddingRight');
+      warnIfHeaderStyleDefined(paddingLeft, 'paddingLeft');
+      // warnIfHeaderStyleDefined(paddingVertical, 'paddingVertical');
+      // warnIfHeaderStyleDefined(paddingTop, 'paddingTop');
+      // warnIfHeaderStyleDefined(paddingBottom, 'paddingBottom');
+      warnIfHeaderStyleDefined(top, 'top');
+      warnIfHeaderStyleDefined(right, 'right');
+      warnIfHeaderStyleDefined(bottom, 'bottom');
+      warnIfHeaderStyleDefined(left, 'left');
     }
 
     // TODO: warn if any unsafe styles are provided
@@ -589,7 +619,14 @@ class AppBar extends React.PureComponent {
     const forceInset = headerForceInset || { top: 'always', bottom: 'never' };
 
     return (
-      <Animated.View style={this.props.layoutInterpolator(this.props)}>
+      <Animated.View
+        style={[
+          this.props.layoutInterpolator(this.props),
+          Platform.OS === 'ios'
+            ? { backgroundColor: DEFAULT_BACKGROUND_COLOR }
+            : null,
+        ]}
+      >
         <SafeAreaView forceInset={forceInset} style={containerStyles}>
           <View style={StyleSheet.absoluteFill}>
             {options.headerBackground}
